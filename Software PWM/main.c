@@ -1,3 +1,11 @@
+/*
+ * This code implements a 1kHz PWM signal with a duty cycle between 0% and 100%. Initially a 50 % duty cycle LED is generated. With the utilization of 
+ * the PORT1 interrupt, and TIMERA1 interrupt, the press of a button P1.3 allows for the PWM to increase between 0% and 100% duty cycle within respective button presses.
+ * 
+ */
+
+
+
 #include <msp430.h>
 
 /*
