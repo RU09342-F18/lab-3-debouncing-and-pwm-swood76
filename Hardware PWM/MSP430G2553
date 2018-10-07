@@ -11,12 +11,17 @@ void  ButtonSetup();
 
 int main(void)
 {
-    WDTCTL = WDTPW + WDTHOLD;   // stop watchdog timer
+    WDTCTL = WDTPW + WDTHOLD; // Disable the watchdog timer from being active, so it does not reset MCU/program
+    /*
+             Function calls
+    */
     LEDSetup();
     TimerA0Setup();
     TimerA1Setup();
     ButtonSetup();
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+    __bis_SR_register(LPM0_bits + GIE); // Enables Low Power Mode0 as well as enabling global interrupts
+    // Entering Low Power Mode0 enables it so the only necessary clocks are active: SMCLK and ACLK, as well as disabling
+    // CPU and MCLK
 
     return 0;
 }
@@ -32,21 +37,17 @@ void LEDSetup()
                        // the LED would not be connected to the Timer
 }
 
+
 void TimerA0Setup()
 {
-
-
-        TA0CTL = TASSEL_2 | MC_1;           //Selects source to be submaster clock, up Mode
-
+        TA0CTL = TASSEL_2 | MC_1;           //Selects source to be submaster clock, up Mode; able to still do so in Low Power Mode0
         TA0CCR0 = 1000-1;                   //Period we want the PWM to happen at such it will count to 999; compensates for zero by 1000-1
         TA0CCR1 = 500;                      //Pulse width of PWM to start at 50 %, this will be reached first since
                                              // in output Mode 7, and in general, the CCR1 register is reached
                                              // prior to the CCR0 register, in this configuration the pin remains high until CCR1 is reached and low until CCR0 is reached
                                              // changing the value of CCR1 and keeping CCR0 constant, the pulse width can be changed
-
         TA0CCTL1 = OUTMOD_7;                // TimerA0 Control Register set to output mode 7,
                                                    // which is reset/set and is normally used for PWM
-
 
 }
 void TimerA1Setup()
