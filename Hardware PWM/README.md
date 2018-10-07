@@ -1,18 +1,2 @@
-# Hardware PWM
-Now that you have done the software version of PWM, now it is time to start leveraging the other features of these Timer Modules.
-
-## Task
-You need to replicate the same behavior as in the software PWM, only using the Timer Modules ability to directly output to a GPIO Pin instead of managing them in software. One way to thing about what should happen is that unless your are doing some other things in your code, your system should initialize, set the Timer Modules, and then turn off the CPU.
-
-## Deliverables
-You will need to have two folders in this repository, one for each of the processors that you used for this part of the lab. Remember to replace this README with your own.
-
-### Hints
-Read up on the P1SEL registers as well as look at the Timer modules ability to multiplex.
-
-## Extra Work
-### Using ACLK
-Some of these microprocessors have a built in ACLK which is extremely slow compared to your up to 25MHz available on some of them. What is the overall impact on the system when using this clock? Can you actually use your PWM code with a clock that slow?
-
-### Ultra Low Power
-Using a combination of ACLK, Low Power Modes, and any other means you may deem necessary, optimize this PWM code to run at 50% duty cycle with a LED on the MSP430FR5994. In particular, time how long your code can run on the fully charged super capacitor. You do not need to worry about the button control in this case, and you will probably want to disable all the GPIO that you are not using (nudge, nudge, hint, hint).
+#Hardware PWM
+Included in this repository is two examples of Hardware PWM implemented on two TI launchpads: MSP430G2553 and MSP430FR2311. The program(s) function identically in that they both utilize two interrupts: Port1 and TIMERX_XX such that at the start an onboard LED is on at 50 % duty cyle and as the PWM is less than the desired value of 1000, the duty cycle is incremented to 100 % from 0-1000 through the use of PORT1 and TIMERX_XX interrupt. Both programs required the configuration of their own unique timers to be able to simulate PWM to their respective OUTPUT pins, and required research into specific modes the timers can be configured to. For example, the datasheet for the MSP430G2553 requires that the output pin 1.6 be configured to TimerA0; as a result, the special function register for this specific outpout pin was enabled and set high to allow for the PWM ability, where as, for the MSP430FR2311 the timerB module was utilized. More information regarding the setup, the reason why the program functions on each board, or why a certain timer mode was selected can be found within the main.c file for each board.
