@@ -1,0 +1,99 @@
+#include <msp430.h> 
+
+int PWM = 500;
+/*
+ * Declaration of functions utilized
+ */
+void LEDSetup();
+void  TimerA0Setup();
+void  TimerA1Setup();
+void  ButtonSetup();
+
+int main(void)
+{
+    WDTCTL = WDTPW + WDTHOLD;   // stop watchdog timer
+    LEDSetup();
+    TimerA0Setup();
+    TimerA1Setup();
+    ButtonSetup();
+    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
+
+    return 0;
+}
+
+void LEDSetup()
+{
+
+        P1DIR |= BIT6; // Since P1.6 can be figured as output for TimerA0,
+                       //P1.6 is set as an output
+        P1SEL |= BIT6; // Configures Output pin as a special function
+                       // such that it is an output for TimerA0,
+                       // without this line, nothing would happen because
+                       // the LED would not be connected to the Timer
+}
+
+void TimerA0Setup()
+{
+
+
+        TA0CTL = TASSEL_2 | MC_1;           //Selects source to be submaster clock, up Mode
+
+        TA0CCR0 = 1000-1;                   //Period we want the PWM to happen at such it will count to 999; compensates for zero by 1000-1
+        TA0CCR1 = 500;                      //Pulse width of PWM to start at 50 %, this will be reached first since
+                                             // in output Mode 7, and in general, the CCR1 register is reached
+                                             // prior to the CCR0 register, in this configuration the pin remains high until CCR1 is reached and low until CCR0 is reached
+                                             // changing the value of CCR1 and keeping CCR0 constant, the pulse width can be changed
+
+        TA0CCTL1 = OUTMOD_7;                // TimerA0 Control Register set to output mode 7,
+                                                   // which is reset/set and is normally used for PWM
+
+
+}
+void TimerA1Setup()
+{
+        TA1CCR0 = 10000; //Value TimerA1 CCR0 register set to count to and interrupt overflow
+        TA1CCTL0 = CCIE;  // Allows for interrupt to be enabled when the value of CCR1 is reached
+
+}
+
+void ButtonSetup()
+{
+
+        P1DIR &= ~BIT3;  //Initialization of button (P1.3) as an input,
+        P1OUT |= BIT3;   // /Configures the pull up or pull down resistor as a pull up resistor for P1.3 since the button is desired to be an input when the button is pressed, an the PWM's duty cycle increases
+                                // logic high is read when the button is not pressed since the pull up is connected directly
+                                //  to VDD, and a logic zero is read when the button is pressed
+        P1REN |= BIT3;   //Initialization of the pull up or pull down resistor that is connected to the button
+
+        P1IE |= BIT3;   //Configures interrupt to be high on the P1IE register so when button is pressed;
+                        //the PORT1 ISR is enabled, without button has no effect on LED
+
+}
+
+//Timer1_A0 ISR
+#pragma vector = TIMER1_A0_VECTOR
+__interrupt void Timer1_A0 (void)
+{
+   // when the desired PWM value of 1000 is not reached the PWM is incremented by 100 until 1000 is reached
+    if(PWM < 1000)
+    {
+      PWM = PWM + 100;
+    }
+    // reset PWM when desired PWM value is reached
+    else
+    {
+        PWM = 0;
+    }
+    P1IE |= BIT3;//Configures interrupt to be high on the P1IE register so when button is pressed; the PORT1 ISR is enabled
+    TA1CTL = 0; // TimerA1's Control register set to disable the submaster clock
+    TA0CCR1 = PWM;// //Pulse width of PWM set to start at 50 %,
+
+}
+// PORT1 ISR
+#pragma vector = PORT1_VECTOR
+__interrupt void PORT_1(void)
+{
+    P1IFG &= ~BIT3;  // P1IFG is set to zero to verify the event; the button press has not occurred, so ISR can run
+    TA1CTL = TASSEL_2 + MC_1; // When button pressed and port1 ISR is ran, timerA1's control is set
+                              // to submaster clock, in Up mode, if line not present no count occurs and LED just
+}
