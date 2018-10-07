@@ -14,7 +14,7 @@
  * Initialization of Global constants
  */
 int ButtonEdge = 0; // Set state of button to zero for proper button debounce
-int PWM = 500; // Initialized PWM as global constant of 500, so that on board LED duty cycle of 50 percent is achieved intially
+int PWM = 500; // Initialized PWM as global constant of 500, so that on board LED duty cycle of 50 percent is achieved initially
 
 /*
  *  Declaration of Functions Utilized
